@@ -1,0 +1,99 @@
+{
+  "name": "@roocky/vue-shudan",
+  "version": "0.2.0",
+  "description": "基于Vue.js的围棋盘组件",
+  "main": "./src/components/Shudan/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roocky-lab/vue-shudan"
+  },
+  "keywords": [
+    "javascript",
+    "vue",
+    "ui-components",
+    "go",
+    "weiqi",
+    "goboard",
+    "goban",
+    "baduk"
+  ],
+  "author": "roocky",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/roocky-lab/vue-shudan/issues"
+  },
+  "homepage": "https://github.com/roocky-lab/vue-shudan",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "core-js": "^2.6.5",
+    "vue": "^2.6.10"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^3.6.0",
+    "@vue/cli-plugin-eslint": "^3.6.0",
+    "@vue/cli-service": "^3.6.0",
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.16.0",
+    "eslint-plugin-vue": "^5.0.0",
+    "vue-template-compiler": "^2.5.21"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/strongly-recommended",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
+    "rules": {
+      "semi": [
+        "error",
+        "always"
+      ],
+      "space-before-function-paren": [
+        "error",
+        {
+          "anonymous": "always",
+          "named": "never",
+          "asyncArrow": "never"
+        }
+      ],
+      "vue/script-indent": [
+        "error",
+        4,
+        {
+          "baseIndent": 0
+        }
+      ],
+      "vue/html-indent": [
+        "error",
+        4,
+        {
+          "attribute": 1,
+          "baseIndent": 0,
+          "closeBracket": 1,
+          "alignAttributesVertically": false,
+          "ignores": []
+        }
+      ]
+    }
+  },
+  "postcss": {
+    "plugins": {
+      "autoprefixer": {}
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ]
+}
