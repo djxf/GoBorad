@@ -5,6 +5,7 @@ module.exports = {
             entry: 'example/main.js',
             template: 'example/index.html'
         }
-    }
+    },
+    transpileDependencies: []
 };
 

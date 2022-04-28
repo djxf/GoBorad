@@ -279,6 +279,9 @@ export default {
     },
     mounted() {
         this.maxSize = window.innerWidth - 400;
+        this.rawSignMap = [...Array(19 * 19).fill(0)];
+        console.log(this.rawSignMap);
+        this.signMap = this.rawSignMap;
     },
     methods: {
         onVertexClick: function (offset) {

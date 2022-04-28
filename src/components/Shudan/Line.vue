@@ -1,5 +1,5 @@
 <script>
-import { vertexEquals } from "./helper.js";
+import { vertexEquals } from "../../js/helper.js";
 
 export default {
     props: {
