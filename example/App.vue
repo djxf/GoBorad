@@ -83,6 +83,7 @@
 
 <script>
 import Goban from '../src/components/Shudan';
+import * as Play from '../src/js/play';
 
 const chineseCoordx = [
     '一', '二', '三', '四', '五', '六', '七', '八', '九', '十',
@@ -259,7 +260,7 @@ export default {
         };
     },
     mounted() {
-        this.maxSize = window.innerWidth - 400;
+        this.maxSize = window.innerWidth;
         this.rawSignMap = [...Array(19 * 19).fill(0)];
         console.log(this.rawSignMap);
         this.signMap = this.rawSignMap;
@@ -268,12 +269,15 @@ export default {
         onVertexClick: function (offset) {
             // offset: 在棋盘上的位置，棋盘抽象为1维数组。0 - 361.
             console.log('onVertexClick offset: ' + offset);
+            console.log(this.signMap);
+
             if (this.signMap[offset] !== 0) {
                 return;
             }
-            let signMap = JSON.parse(JSON.stringify(this.signMap));
-            signMap[offset] = (this.curAction === 1) ? 1 : -1;
-            this.curAction = - this.curAction;
+            Play.play(offset/19, offset%19)
+            // let signMap = JSON.parse(JSON.stringify(this.signMap));
+            // signMap[offset] = (this.curAction === 1) ? 1 : -1;
+            // this.curAction = - this.curAction;
             this.signMap = signMap;
         }
     },

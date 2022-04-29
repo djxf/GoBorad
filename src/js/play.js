@@ -226,12 +226,17 @@ function is_jie(row, col, dead_body) { //是否劫
 	return false;
 }
 
-/* 能提吃吗？ */
-function can_eat(row, col, color, dead_body) { // color 是当前要落子的颜色
+/**
+ * 死子计算和检测
+ * 
+ * 
+ * 
+ */
+export function can_eat(row, col, color, dead_body) { // color 是当前要落子的颜色
 	var ret = false;
 	var anti_color = 2;
 	if (color === 2)
-		anti_color = 1;
+		anti_color = 1;		//anti：反方
 
 	if (row+1 <= 19-1 && pan[row+1][col] === anti_color) {
 		make_shadow();
@@ -278,7 +283,13 @@ function can_eat(row, col, color, dead_body) { // color 是当前要落子的颜
 	return ret;
 }
 
-function record_dead_body(db) {
+/**
+ * 记录死亡的棋子
+ * 
+ * @param {*} db 
+ * @returns 
+ */
+export function record_dead_body(db) {
 	var ret = false;
 	for (var row = 0; row < shadow.length; row++) {
 		for (var col = 0; col < shadow[row].length; col++) {
@@ -291,15 +302,23 @@ function record_dead_body(db) {
 	}
 	return ret;
 }
-function clean_dead_body(db) {
+
+/**
+ * 清除死子操作
+ * @param {} db 
+ */
+export function clean_dead_body(db) {
 	for (var i = 0; i < db.length; i++) {
 		pan[db[i][0]][db[i][1]] = 0;
 		//alert("OUT: "+(db[i][0]).toString()+","+(db[i][1]).toString());
 	}	
 }
 
-/* 填充的区域周围是否有空 */
-function fill_block_have_air(row, col, color) {
+/**
+ * 填充的区域周围是否有空
+ * 
+ */
+export function fill_block_have_air(row, col, color) {
 	for (var i = 0; i < pan.length; i++) {
 		for (var j = 0; j < pan[i].length; j++) {
 			if (i !== row || j !== col) {
@@ -312,27 +331,37 @@ function fill_block_have_air(row, col, color) {
 	//alert("fill block 无气！！！");
 	return false;
 }
-/* 提吃判断专用 */
-function anti_fill_block_have_air(color) {
+/**
+ * 提吃判断专用 
+ * color当前下棋方的反方棋子。
+ * 
+ * 
+ */
+export function anti_fill_block_have_air(color) {
 	for (var i = 0; i < pan.length; i++) {
 		for (var j = 0; j < pan[i].length; j++) {
 			if (shadow[i][j] === 7 && pan[i][j] !== color) {
 				return true; // 活
-			}
+			}                                                                                                                                                                  
 		}
 	}
 	//alert("anti fill block 无气！！！");
 	return false; //死
 }
-/* 将盘面做个影分身 */
-function make_shadow() {
+
+/**
+ * 将盘面做个影分身 
+ * 
+ * 
+ */
+export function make_shadow() {
 	for (var i = 0; i < pan.length; i++) {
 		for (var j = 0; j < pan[i].length; j++) {
 			shadow[i][j] = pan[i][j];
 		}
 	}
 }
-function shadow_to_pan() {
+export function shadow_to_pan() {
 	for (var i = 0; i < pan.length; i++) {
 		for (var j = 0; j < pan[i].length; j++) {
 			pan[i][j] = shadow[i][j];
@@ -341,7 +370,7 @@ function shadow_to_pan() {
 }
 
 /* 泛洪填充，只操作影分身 */
-function flood_fill(row, col, color) { // color 为当前要填充的颜色
+export function flood_fill(row, col, color) { // color 为当前要填充的颜色
 	if (row < 0 || row > 19-1 || col < 0 || col > 19-1)
 		return;
 
@@ -359,7 +388,7 @@ function flood_fill(row, col, color) { // color 为当前要填充的颜色
 }
 
 /* 坐标周围4交叉点有气否？ */
-function have_air(row, col) {
+export function have_air(row, col) {
 	if (row > 0 && row < 19-1 && col > 0 && row < 19-1) { //非边角 1->17(0->18)
 		if (	pan[row+1][col] !== 0 &&
 				pan[row-1][col] !== 0 &&
@@ -434,14 +463,10 @@ function have_air(row, col) {
 			return true;
 		}
 	}
-
-
-
-		
 }
 
 /* 坐标周围是否有我方的棋子 */
-function have_my_people(row, col) { //FIXME 边角没有处理呢
+export function have_my_people(row, col) { //FIXME 边角没有处理呢
 	if (row > 0 && row < 19-1 && col > 0 && row < 19-1) { //非边角 1->17(0->18)
 		if (move_count % 2 === 0) { //未落子前是白
 			if (	pan[row+1][col] === 1 ||
@@ -586,7 +611,7 @@ function have_my_people(row, col) { //FIXME 边角没有处理呢
 }
 
 // 真正落子
-function stone_down(row, col) {
+export function stone_down(row, col) {
 	if (move_count % 2 === 0) { //未落子前是白
 		pan[row][col] = 1; //就放黑
 	} else {

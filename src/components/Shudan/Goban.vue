@@ -5,6 +5,7 @@ import Vertex from './Vertex.vue';
 import ULine from './Line.vue';
 import helper from '../../js/helper.js';
 import { setTimeout } from 'timers';
+import { play } from '../../js/play.js'
 
 const defaultVertexSize = 24;
 const readjustShifts = function (shiftMap, boardSize, offset) {
