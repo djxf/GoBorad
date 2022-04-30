@@ -39,7 +39,8 @@ export default {
                     ? (2 * sets.length - 1) * 0.5 - val
                     : sets.length - val;
             };
-
+            console.log('lines: -----------');
+            console.log(this);
             return [
                 ...ys.map((_, i) => {
                     return {
@@ -74,6 +75,8 @@ export default {
                     });
                 }
             });
+            console.log('result: ---------------');
+            console.log(result);
             return result;
         }
     }

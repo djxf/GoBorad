@@ -5,26 +5,26 @@ import Vertex from './Vertex.vue';
 import ULine from './Line.vue';
 import helper from '../../js/helper.js';
 import { setTimeout } from 'timers';
-import { play } from '../../js/play.js'
+import * as Play from '../../js/play.js';
 
 const defaultVertexSize = 24;
 const readjustShifts = function (shiftMap, boardSize, offset) {
-    const shift = shiftMap[offset];
+    const shift = shiftMap[offset / 19][offset % 19];
     if (!shift) return;
 
-    const table = [
-        [[1, 5, 8], offset - 1, [3, 7, 6]],         // 落点偏左，撞到落点左方偏右的棋子
-        [[2, 5, 6], offset - boardSize, [4, 7, 8]], // 上撞下
-        [[3, 7, 6], offset + 1, [1, 5, 8]],         // 右撞左
-        [[4, 7, 8], offset + boardSize, [2, 5, 6]], // 下撞上
-    ];
-    for (let [directions, nearOffset, removeShifts] of table) {
-        const nearShift = shiftMap[nearOffset];
-        if (nearShift
-            && directions.includes(shift)
-            && removeShifts.includes(nearShift))
-            shiftMap.splice(nearOffset, 1, 0); // 被撞到中位
-    }
+    // const table = [
+    //     [[1, 5, 8], offset - 1, [3, 7, 6]],         // 落点偏左，撞到落点左方偏右的棋子
+    //     [[2, 5, 6], offset - boardSize, [4, 7, 8]], // 上撞下
+    //     [[3, 7, 6], offset + 1, [1, 5, 8]],         // 右撞左
+    //     [[4, 7, 8], offset + boardSize, [2, 5, 6]], // 下撞上
+    // ];
+    // for (let [directions, nearOffset, removeShifts] of table) {
+    //     const nearShift = shiftMap[nearOffset / 19][nearOffset % 19];
+    //     if (nearShift
+    //         && directions.includes(shift)
+    //         && removeShifts.includes(nearShift))
+    //         shiftMap.splice(nearOffset, 1, 0); // 被撞到中位
+    // }
 };
 
 export default {
@@ -73,7 +73,7 @@ export default {
 
         signMap: {
             type: Array,
-            default: () => []
+            default: () => undefined
         },
 
         coordX: {
@@ -166,10 +166,10 @@ export default {
         },
 
         shiftMap() {
-            const { boardSize } = this;
-            const shiftMap = [...Array(boardSize * boardSize)].map(() => helper.random(8));
-            shiftMap.forEach((_, i) => readjustShifts(shiftMap, boardSize, i));
-            return shiftMap;
+            // const { boardSize } = this;
+            // const shiftMap = [...Array(boardSize * boardSize)].map(() => helper.random(8));
+            // shiftMap.forEach((_, i) => readjustShifts(shiftMap, boardSize, i));
+            // return shiftMap;
         },
 
         randomMap() {
@@ -180,6 +180,8 @@ export default {
         xs() {
             this.updateElementSize();
             const { boardSize, rangeX } = this;
+            console.log('xs-------------');
+            console.log(helper.range(boardSize).slice(rangeX[0], rangeX[1] + 1));
             return helper.range(boardSize).slice(rangeX[0], rangeX[1] + 1);
         },
 
@@ -203,15 +205,15 @@ export default {
                 const offset = y * boardSize + x;
                 result.push({
                     offset,
-                    shift: fuzzyStonePlacement ? shiftMap && shiftMap[offset] : 0,
-                    random: randomMap && randomMap[offset],
-                    sign: signMap && signMap[offset],
-                    heat: heatMap && heatMap[offset],
-                    paint: paintMap && paintMap[offset],
-                    marker: markerMap && markerMap[offset],
-                    ghostStone: ghostStoneMap && ghostStoneMap[offset],
-                    dimmed: dimmedMap && dimmedMap[offset],
-                    selected: selectedMap && selectedMap[offset],
+                    shift: fuzzyStonePlacement ? shiftMap && shiftMap[y][x] : 0,
+                    random: randomMap && randomMap[y][x],
+                    sign: signMap && signMap[y][x],
+                    heat: heatMap && heatMap[y][x],
+                    paint: paintMap && paintMap[y][x],
+                    marker: markerMap && markerMap[y][x],
+                    ghostStone: ghostStoneMap && ghostStoneMap[y][x],
+                    // dimmed: dimmedMap && dimmedMap[y][x],
+                    // selected: selectedMap && selectedMap[y][x],
                     animate: animatedVertices && animatedVertices.some(v => v === offset)
                 });
             });});
@@ -229,6 +231,7 @@ export default {
         },
 
         signMap(newSignMap, oldSignMap) {
+            console.log('signMap watch');
             const { animateStonePlacement, fuzzyStonePlacement, clearAnimatedVerticesHandler } = this;
             if (animateStonePlacement
                 && fuzzyStonePlacement
