@@ -8,3 +8,4 @@ console.log('hello world')
 new Vue({
     render: h => h(App),
 }).$mount('#app');
+

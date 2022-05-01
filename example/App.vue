@@ -51,8 +51,20 @@
                 </label>
             </template>
         </div>
+        <h3>玩家列表</h3>
+        <p></p>
+        <div class="userList" v-if="playUserList && playUserList.length > 0">
+            <div class="user" v-for="(item, index) in playUserList" :key="index">
+                <span>
+                    玩家: {{ item.userId }}
+                </span>
+                <span>
+                    <button id="invite" @click="invite(item.userId)">邀请</button>
+                </span>
+            </div>
+        </div>
     </form>
-
+    
     <Goban
         :max-width="maxSize"
         :max-height="maxSize"
@@ -78,6 +90,7 @@
         :selected-map="showSelection ? selectedMap : []"
         @click="onVertexClick"
         />
+    
 </section>
 </template>
 
@@ -235,6 +248,27 @@ const selectedMap = (() => {
     selectedMap[y][x] = true;
 });
 
+function uuid() {
+    var s = [];
+    var hexDigits = "0123456789";
+    for (var i = 0; i < 4; i++) {
+        s[i] = hexDigits.charAt(Math.floor(Math.random() * 10));
+    }
+    // s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
+    // s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
+    // s[8] = s[13] = s[18] = s[23] = "-";
+ 
+    var uuid2 = s.join("");
+    return uuid2;
+}
+//自己的id
+let globalId = uuid();
+var toUserId = '';
+
+
+var socketUrl="ws://192.168.0.8:8081/imserver/"+ globalId;
+var socket = new WebSocket(socketUrl);
+
 export default {
     name: 'App',
     components: {
@@ -258,7 +292,6 @@ export default {
             showLines: false,
             showSelection: false,
             isBusy: false,
-
             rawSignMap,
             chineseCoordx,
             chineseCoordy,
@@ -270,22 +303,71 @@ export default {
             selectedMap,
             checkedNames: [],
             curAction: 1,     //当前行动方，落子方，balck:1 ，white: -1。
+            playUserList: [],
         };
     },
     mounted() {           
         this.maxSize = (window.innerHeight > window.innerWidth ? window.innerWidth : window.innerHeight);
         console.log('rawSignMap: ' + this.rawSignMap);
         this.signMap = this.rawSignMap;
+        this.connectWebsocket(this.actionGo2, this.handleMessage);
     },
     methods: {
         onVertexClick: function (offset) {
             // offset: 在棋盘上的位置，棋盘抽象为1维数组。0 - 361.
             console.log('onVertexClick offset: ' + offset);
-            console.log('signMap: ' + this.signMap);
+            this.actionGo(offset);
+        },
+        actionGo(offset) {
             let x = Math.floor(offset / BoradSize);
             let y = offset % BoradSize;
             play(this.rawSignMap, x, y);
             this.signMap = JSON.parse(JSON.stringify(rawSignMap));
+            const msg = {};
+            msg.message_type = 'paly_action';
+            msg.x = x;
+            msg.y = y;
+            msg.toUserId = this.toUserId;
+            if (this.toUserId) {
+                this.sendCommonMessage(msg);
+            } else {
+                console.warn('当前没有对战玩家！');
+            }
+        },
+        actionGo2(offset) {
+            let x = Math.floor(offset / BoradSize);
+            let y = offset % BoradSize;
+            play(this.rawSignMap, x, y);
+            this.signMap = JSON.parse(JSON.stringify(rawSignMap));
+        },
+        //处理消息
+        handleMessage(msg) {
+            const msgType = msg.message_type;
+            switch(msgType) {
+                case 'play_on_line':
+                    const ulist = JSON.parse(msg.playUserList);
+                    if (msg.playUserList && ulist.length > 0) {
+                        this.playUserList = [];
+                        this.playUserList = ulist;
+                    }
+                    break;
+                case 'play_receive_invite':
+                    console.log('收到对局邀请 开始对局');
+                    this.toUserId = msg.fromUserId;
+                    break;
+                case 'connection_success':
+                    console.log('连接服务端成功');
+                    break;
+                case 'paly_action':
+                    let x = msg.x;
+                    let y = msg.y;
+                    const index = Number.parseInt(x) * BoradSize + Number.parseInt(y);
+                    this.actionMove(index);
+                    break;
+                default:
+                    console.warn('unkow_message_type');
+                    break;
+            }
         },
         createInitBoard() {
             let arr = [];
@@ -296,11 +378,69 @@ export default {
             }
             return arr;
         },
-        index2IndexArray(offset) {
-            let arr = new Array(2);
-            arr[0] = offset / BoradSize;
-            arr[1] = offset % BoradSize;
-            return arr;
+        connectWebsocket(actionMove, handleMessage) {
+            if(typeof(WebSocket) == "undefined") {
+                console.log("您的浏览器不支持WebSocket");
+            }else{
+                console.log("您的浏览器支持WebSocket");
+                
+                //打开事件
+                socket.onopen = function() {
+                    console.log("websocket已打开");
+                    //socket.send("这是来自客户端的消息" + location.href + new Date());
+                };
+                //获得消息事件
+                socket.onmessage = function(msg) {
+                    console.log('onmessage');
+                    console.log(msg);
+                    handleMessage(JSON.parse(msg.data));
+                };
+                //关闭事件
+                socket.onclose = function() {
+                    console.log("websocket已关闭");
+                };
+                //发生了错误事件
+                socket.onerror = function() {
+                    console.log("websocket发生了错误");
+                }
+            }
+        },
+        sendMessage(x, y) {
+            let index = x + ',' + y;
+            if(typeof(WebSocket) == "undefined") {
+                console.log("您的浏览器不支持WebSocket");
+            }else {
+                console.log("您的浏览器支持WebSocket");
+                if (this.toUserId) {
+                    console.log('{"toUserId":"'+"#toUserId"+'","index":"'+ index + '"}');
+                    socket.send('{"toUserId":"' + toUserId + '","index":"'+ index  + '"}');
+                } else {
+                    console.warn('当前没有对战玩家！');
+                }
+            }
+        },
+        //发送通用消息
+        sendCommonMessage(message) {
+            if(typeof(WebSocket) == "undefined") {
+                console.log("您的浏览器不支持WebSocket");
+            }else {
+                console.log("您的浏览器支持WebSocket");
+                if (socket) {
+                    socket.send(JSON.stringify(message));
+                } else {
+                    console.error('socket not init!');
+                }
+            }
+        },
+        //邀请玩家进行对战
+        invite(userId) {
+            const msg = {};
+            msg.message_type = 'play_receive_invite';
+            msg.toUserId = userId;
+            msg.fromUserId = globalId;
+            toUserId = userId;
+            this.sendCommonMessage(msg);
+            //暂时强制对战
         }
     },
 
@@ -347,7 +487,7 @@ body {
 #app {
     display: flex;
     text-align: center;
-    flex-direction: row;
+    flex-direction: column;
     margin: auto;
 }
 </style>
