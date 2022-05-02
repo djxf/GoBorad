@@ -59,7 +59,7 @@
                     玩家: {{ item.userId }}
                 </span>
                 <span>
-                    <button id="invite" @click="invite(item.userId)">邀请</button>
+                    <button id="invite" @click="invite(item.userId)" type="button">邀请</button>
                 </span>
             </div>
         </div>
@@ -90,6 +90,18 @@
         :selected-map="showSelection ? selectedMap : []"
         @click="onVertexClick"
         />
+
+    <el-dialog
+        title="提示"
+        :visible.sync="dialogVisible"
+        width="30%"
+        >
+        <span>是否接受对局邀请？</span>
+        <span slot="footer" class="dialog-footer">
+            <el-button @click="handleInvite(false)">取 消</el-button>
+            <el-button type="primary" @click="handleInvite(true)">确 定</el-button>
+        </span>
+    </el-dialog>
     
 </section>
 </template>
@@ -263,16 +275,15 @@ function uuid() {
 }
 //自己的id
 let globalId = uuid();
-var toUserId = '';
 
 
-var socketUrl="ws://192.168.0.8:8081/imserver/"+ globalId;
+var socketUrl="ws://139.9.199.185:8888/imserver/"+ globalId;
 var socket = new WebSocket(socketUrl);
 
 export default {
     name: 'App',
     components: {
-        Goban
+        Goban,
     },
 
     data: function () {
@@ -304,9 +315,13 @@ export default {
             checkedNames: [],
             curAction: 1,     //当前行动方，落子方，balck:1 ，white: -1。
             playUserList: [],
+            dialogVisible: false,
+            toUserId: undefined,
+            isSelfMove: false
         };
     },
-    mounted() {           
+    mounted() {
+        console.log('mounted');
         this.maxSize = (window.innerHeight > window.innerWidth ? window.innerWidth : window.innerHeight);
         console.log('rawSignMap: ' + this.rawSignMap);
         this.signMap = this.rawSignMap;
@@ -316,6 +331,10 @@ export default {
         onVertexClick: function (offset) {
             // offset: 在棋盘上的位置，棋盘抽象为1维数组。0 - 361.
             console.log('onVertexClick offset: ' + offset);
+            if (!this.isSelfMove) {
+                console.warn('当前不是行动方');
+                return;
+            }
             this.actionGo(offset);
         },
         actionGo(offset) {
@@ -330,6 +349,8 @@ export default {
             msg.toUserId = this.toUserId;
             if (this.toUserId) {
                 this.sendCommonMessage(msg);
+                this.curAction = - this.curAction;
+                this.isSelfMove = false;
             } else {
                 console.warn('当前没有对战玩家！');
             }
@@ -353,6 +374,12 @@ export default {
                     break;
                 case 'play_receive_invite':
                     console.log('收到对局邀请 开始对局');
+                    console.log(msg);
+                    this.dialogVisible = true;
+                    //接受：
+
+
+                    //拒绝：
                     this.toUserId = msg.fromUserId;
                     break;
                 case 'connection_success':
@@ -362,7 +389,21 @@ export default {
                     let x = msg.x;
                     let y = msg.y;
                     const index = Number.parseInt(x) * BoradSize + Number.parseInt(y);
-                    this.actionMove(index);
+                    this.actionGo2(index);
+                    this.isSelfMove = true;
+                    break;
+                case 'play_refused_invite':
+                    //玩家拒绝邀请。
+                    console.log("收到玩家拒绝邀请");
+                    console.log(msg);
+                    this.toUserId = undefined;
+                    break;
+                case 'play_accept_invite':
+                    //玩家接收邀请
+                    console.log("玩家接收邀请");
+                    console.log(msg);
+                    this.toUserId = msg.fromUserId;
+                    this.isSelfMove = true;
                     break;
                 default:
                     console.warn('unkow_message_type');
@@ -426,6 +467,9 @@ export default {
             }else {
                 console.log("您的浏览器支持WebSocket");
                 if (socket) {
+                    console.log('前端 sendCommonMessage: -----------');
+                    console.log(message);
+                    message.curAction = this.curAction;
                     socket.send(JSON.stringify(message));
                 } else {
                     console.error('socket not init!');
@@ -438,9 +482,16 @@ export default {
             msg.message_type = 'play_receive_invite';
             msg.toUserId = userId;
             msg.fromUserId = globalId;
-            toUserId = userId;
             this.sendCommonMessage(msg);
             //暂时强制对战
+        },
+        handleInvite(result) {
+            this.dialogVisible = false;
+            const msg = {};
+            msg.message_type = result ? 'play_accept_invite' : 'play_refused_invite';
+            msg.fromUserId = globalId;
+            msg.toUserId = this.toUserId;
+            this.sendCommonMessage(msg);
         }
     },
 
