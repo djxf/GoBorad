@@ -1,9 +1,9 @@
 <template>
 <section
     id="app"
-    style="display: grid; grid-template-columns: 15em auto; column-gap: 1em;"
+    style="display: flex;"
     >
-    <form style="display: flex; flex-direction: column;">
+    <form v-if="this.isShowInput" style="display: flex; flex-direction: column;">
         <p style="margin: 0px 0px 0.5em;">
             Size:
             <button
@@ -51,19 +51,10 @@
                 </label>
             </template>
         </div>
-        <h3>玩家列表</h3>
-        <p></p>
-        <div class="userList" v-if="playUserList && playUserList.length > 0">
-            <div class="user" v-for="(item, index) in playUserList" :key="index">
-                <span>
-                    玩家: {{ item.userId }}
-                </span>
-                <span>
-                    <button id="invite" @click="invite(item.userId)" type="button">邀请</button>
-                </span>
-            </div>
-        </div>
     </form>
+
+    <go-status>
+    </go-status>
     
     <Goban
         :max-width="maxSize"
@@ -90,11 +81,25 @@
         :selected-map="showSelection ? selectedMap : []"
         @click="onVertexClick"
         />
+    
+     <h3>玩家列表</h3>
+        <p></p>
+        <div class="userList" v-if="playUserList && playUserList.length > 0">
+            <div class="user" v-for="(item, index) in playUserList" :key="index">
+                <span>
+                    玩家: {{ item.userId }}
+                </span>
+                <span>
+                    <button id="invite" @click="invite(item.userId)" type="button">邀请</button>
+                </span>
+            </div>
+    </div>
 
     <el-dialog
         title="提示"
         :visible.sync="dialogVisible"
-        width="30%"
+        width="50%"
+        max-width="500px"
         >
         <span>是否接受对局邀请？</span>
         <span slot="footer" class="dialog-footer">
@@ -108,6 +113,7 @@
 
 <script>
 import Goban from '../src/components/Shudan';
+import GoStatus from '../src/components/Shudan/GoStatus.vue';
 import {initPan, notifyBoard, stone_down, play} from '../src/js/play';
 
 const chineseCoordx = [
@@ -284,6 +290,8 @@ export default {
     name: 'App',
     components: {
         Goban,
+        GoStatus,
+        GoStatus
     },
 
     data: function () {
@@ -317,7 +325,8 @@ export default {
             playUserList: [],
             dialogVisible: false,
             toUserId: undefined,
-            isSelfMove: false
+            isSelfMove: false,
+            isShowInput: false, //是否展示判断的按钮
         };
     },
     mounted() {
@@ -332,7 +341,10 @@ export default {
             // offset: 在棋盘上的位置，棋盘抽象为1维数组。0 - 361.
             console.log('onVertexClick offset: ' + offset);
             if (!this.isSelfMove) {
-                console.warn('当前不是行动方');
+                this.$message({
+                    message: '当前不是行动方',
+                    type: 'success'
+                });
                 return;
             }
             this.actionGo(offset);
@@ -376,10 +388,6 @@ export default {
                     console.log('收到对局邀请 开始对局');
                     console.log(msg);
                     this.dialogVisible = true;
-                    //接受：
-
-
-                    //拒绝：
                     this.toUserId = msg.fromUserId;
                     break;
                 case 'connection_success':
@@ -395,6 +403,10 @@ export default {
                 case 'play_refused_invite':
                     //玩家拒绝邀请。
                     console.log("收到玩家拒绝邀请");
+                    this.$message({
+                        message: '玩家拒绝了你的邀请',
+                        type: 'warning'
+                    });
                     console.log(msg);
                     this.toUserId = undefined;
                     break;
@@ -402,6 +414,10 @@ export default {
                     //玩家接收邀请
                     console.log("玩家接收邀请");
                     console.log(msg);
+                    this.$message({
+                        message: '玩家接收了你的邀请，开始下棋吧',
+                        type: 'success'
+                    })
                     this.toUserId = msg.fromUserId;
                     this.isSelfMove = true;
                     break;
@@ -492,6 +508,21 @@ export default {
             msg.fromUserId = globalId;
             msg.toUserId = this.toUserId;
             this.sendCommonMessage(msg);
+        },
+        showSuccessMsg(msg) {
+            this.$message({
+                message: msg,
+                type: 'success'
+            });
+        },
+        showFailMessage(msg) {
+            this.$message({
+                message: msg,
+                type: 'warning'
+            })
+        },
+        showErrorMsg(msg) {
+            this.$message.error(msg);
         }
     },
 
@@ -539,6 +570,5 @@ body {
     display: flex;
     text-align: center;
     flex-direction: column;
-    margin: auto;
 }
 </style>
