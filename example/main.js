@@ -8,6 +8,7 @@ Vue.use(ElementUI);
 Vue.config.productionTip = false;
 const vConsole = new VConsole();
 console.log('hello world')
+Vue.prototype.$EventBus = new Vue()
 new Vue({
     render: h => h(App),
 }).$mount('#app');
