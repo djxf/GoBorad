@@ -81,20 +81,12 @@
         :selected-map="showSelection ? selectedMap : []"
         @click="onVertexClick"
         />
+    <play-list
+    :playUserList="this.playUserList"
+    @invite="invite"
+    >
+    </play-list>
     
-     <h3>玩家列表</h3>
-        <p></p>
-        <div class="userList" v-if="playUserList && playUserList.length > 0">
-            <div class="user" v-for="(item, index) in playUserList" :key="index">
-                <span>
-                    玩家: {{ item.userId }}
-                </span>
-                <span>
-                    <button id="invite" @click="invite(item.userId)" type="button">邀请</button>
-                </span>
-            </div>
-    </div>
-
     <el-dialog
         title="提示"
         :visible.sync="dialogVisible"
@@ -114,6 +106,7 @@
 <script>
 import Goban from '../src/components/Shudan';
 import GoStatus from '../src/components/Shudan/GoStatus.vue';
+import PlayList from '../src/components/Shudan/PlayList.vue';
 import {initPan, notifyBoard, stone_down, play} from '../src/js/play';
 
 const chineseCoordx = [
@@ -283,7 +276,7 @@ function uuid() {
 let globalId = uuid();
 
 
-var socketUrl="ws://139.9.199.185:8888/imserver/"+ globalId;
+var socketUrl="ws://192.168.0.8:8888/imserver/"+ globalId;
 var socket = new WebSocket(socketUrl);
 
 export default {
@@ -291,6 +284,7 @@ export default {
     components: {
         Goban,
         GoStatus,
+        PlayList,
         GoStatus
     },
 
@@ -326,7 +320,7 @@ export default {
             dialogVisible: false,
             toUserId: undefined,
             isSelfMove: false,
-            isShowInput: false, //是否展示判断的按钮
+            isShowInput: false //是否展示判断的按钮
         };
     },
     mounted() {
