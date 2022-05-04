@@ -7,6 +7,6 @@ module.exports = {
         }
     },
     transpileDependencies: [],
-    publicPath: '/usr/share/nginx/html/'
+    publicPath: 'dist/'
 };
 
