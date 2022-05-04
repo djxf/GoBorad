@@ -6,6 +6,7 @@ module.exports = {
             template: 'example/index.html'
         }
     },
-    transpileDependencies: []
+    transpileDependencies: [],
+    publicPath: '/usr/share/nginx/html/'
 };
 
