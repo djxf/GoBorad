@@ -27,7 +27,7 @@ export default {
         default: []
     },
     methods: {
-        //邀请玩家进行对战
+        //邀请玩家进行对战,下围棋
         invite(userId) {
             this.$emit('invite', userId);
         },
