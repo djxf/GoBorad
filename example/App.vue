@@ -276,7 +276,7 @@ function uuid() {
 let globalId = uuid();
 
 
-var socketUrl="ws://139.9.199.185:8888/imserver/"+ globalId;
+var socketUrl="ws://139.9.199.185:8081/imserver/"+ globalId;
 var socket = new WebSocket(socketUrl);
 
 export default {
